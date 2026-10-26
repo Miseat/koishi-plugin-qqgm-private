@@ -2,6 +2,18 @@
 
 本文件记录所有值得注意的变更。版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## 1.0.1
+
+### 修复
+
+- **主动私发把消息发成了群消息**。
+
+  原先用 `bot.sendMessage(userId, text, { userId })`，OneBot 适配器会把它当成
+  `send_group_msg`（`group_id` 填的是 QQ 号），服务器返回 `retcode: 1200` 发送失败。
+
+  现在改为优先调用底层 `send_private_msg`，失败再逐级回退：
+  `send_private_msg` → `bot.sendPrivateMessage` → `sendMessage('private:<uid>')`。
+
 ## 1.0.0
 
 ### 首个公开版本

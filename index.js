@@ -116,6 +116,48 @@ function inQuietHours(ranges, hour) {
   return false;
 }
 
+/**
+ * 发送私聊消息。OneBot 下 bot.sendMessage(userId, text, {userId}) 会被路由成
+ * send_group_msg（retcode 1200），所以优先走底层 send_private_msg，再逐级回退。
+ */
+async function sendPrivate(bot, userId, text) {
+  const uid = Number(userId) || userId;
+
+  // 1) 底层 OneBot API
+  try {
+    const internal = bot.internal || {};
+    if (typeof internal._request === 'function') {
+      const res = await internal._request('send_private_msg', {
+        user_id: uid,
+        message: [{ type: 'text', data: { text } }],
+      });
+      if (res && (res.message_id || res.retcode === 0)) return true;
+    }
+  } catch (error) {
+    // 继续尝试其它方式
+  }
+
+  // 2) 适配器公开方法
+  try {
+    if (typeof bot.sendPrivateMessage === 'function') {
+      await bot.sendPrivateMessage(uid, text);
+      return true;
+    }
+  } catch (error) {
+    // 继续
+  }
+
+  // 3) 通用 sendMessage，channelId 用私聊会话 id 形式
+  try {
+    await bot.sendMessage(`private:${uid}`, text, { userId: uid });
+    return true;
+  } catch (error) {
+    // 最后一种：YouTube 式 userId 直传
+    await bot.sendMessage(uid, text, { userId: uid, isDirect: true, channelId: `private:${uid}` });
+    return true;
+  }
+}
+
 const DEFAULT_PROACTIVE_PROMPT = [
   '你要主动给一个私聊过的朋友发一条消息，找个话题聊起来。',
   '要求：',
@@ -361,7 +403,10 @@ function apply(ctx, config) {
         logger.warn('[private][proactive] 没有可用的 onebot bot');
         return false;
       }
-      await bot.sendMessage(userId, finalText, { userId });
+      // 私聊必须走私聊通道。直接 bot.sendMessage(userId,...) 在 OneBot 下会被
+      // 当成 group_id 发出去（retcode 1200），所以先试底层 API。
+      const sent = await sendPrivate(bot, userId, finalText);
+      if (!sent) return false;
     } catch (error) {
       logger.warn(`[private][proactive] 发送失败 user=${userId}: ${String(error)}`);
       return false;
