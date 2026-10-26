@@ -1,0 +1,48 @@
+{
+  "name": "@nestim/koishi-plugin-qqgm-private",
+  "version": "1.0.0",
+  "description": "Koishi 私聊插件（依附 @nestim/koishi-plugin-qq-group-manager）：私聊 AI 自动回复 + 定时主动私发，共用主插件的模型与风格钩子。",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "koishi",
+    "koishi-plugin",
+    "qq",
+    "private",
+    "direct-message",
+    "proactive",
+    "ai",
+    "qqgm"
+  ],
+  "peerDependencies": {
+    "koishi": "^4.18.7",
+    "@nestim/koishi-plugin-qq-group-manager": ">=1.2.5"
+  },
+  "peerDependenciesMeta": {
+    "@nestim/koishi-plugin-qq-group-manager": {
+      "optional": false
+    }
+  },
+  "koishi": {
+    "description": "私聊：AI 自动回复 + 定时主动私发",
+    "category": "manage"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Miseat/koishi-plugin-qqgm-private.git"
+  },
+  "homepage": "https://github.com/Miseat/koishi-plugin-qqgm-private#readme",
+  "bugs": {
+    "url": "https://github.com/Miseat/koishi-plugin-qqgm-private/issues"
+  }
+}
