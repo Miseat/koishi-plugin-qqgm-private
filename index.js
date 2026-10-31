@@ -204,6 +204,18 @@ function apply(ctx, config) {
 
   // ---------------------------------------------------------------- 回复
 
+  /** 复用主插件的视觉链路：把私聊消息里的图片转成 data URL */
+  async function collectImages(session) {
+    if (!runtime || typeof runtime.images !== 'function') return [];
+    try {
+      const list = await runtime.images(session);
+      return Array.isArray(list) ? list.filter((item) => typeof item === 'string' && item) : [];
+    } catch (error) {
+      logger.warn(`[private] 图片解析失败: ${String(error)}`);
+      return [];
+    }
+  }
+
   async function handle(session) {
     if (!runtime) return;
     const isDirect = session?.isDirect === true || !session?.guildId;
@@ -214,8 +226,11 @@ function apply(ctx, config) {
 
     seenUsers.set(userId, Date.now());
 
-    const text = extractText(session);
-    if (!text) return;
+    let text = extractText(session);
+    const images = await collectImages(session);
+    // 纯图片消息也要处理：文本为空但有图时给个占位，别在入口就丢掉
+    if (!text && !images.length) return;
+    if (!text) text = '（发来一张图片）';
     // 不抢主插件的命令
     if (/^\s*\[bot\]/i.test(text) || /^\s*[/!！]/.test(text)) return;
 
@@ -266,6 +281,7 @@ function apply(ctx, config) {
       const result = await runtime.chat({
         system,
         user,
+        images,
         temperature: Number(base.aiTemperature ?? 0.8),
         maxTokens: Number(base.aiMaxOutputTokens ?? 600),
       });

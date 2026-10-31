@@ -1,6 +1,6 @@
 {
   "name": "@nestim/koishi-plugin-qqgm-private",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Koishi 私聊插件（依附 @nestim/koishi-plugin-qq-group-manager）：私聊 AI 自动回复 + 定时主动私发，共用主插件的模型与风格钩子。",
   "main": "index.js",
   "files": [
